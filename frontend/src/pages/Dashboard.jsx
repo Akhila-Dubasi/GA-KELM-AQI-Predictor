@@ -1,184 +1,149 @@
-import { useState, useMemo } from "react";
-import Navbar from "../components/Navbar";
-import ReactCountryFlag from "react-country-flag";
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { AlertTriangle, Cloud, Loader2, MapPin } from 'lucide-react';
+import axios from 'axios';
 
-/* 🌍 DATA (TOP 50 SAMPLE — extend to 100 if needed) */
-const rawData = [
-  { country: "Bangladesh", code: "BD", aqi: 172, continent: "Asia", stations: 45 },
-  { country: "Pakistan", code: "PK", aqi: 165, continent: "Asia", stations: 38 },
-  { country: "India", code: "IN", aqi: 154, continent: "Asia", stations: 2782 },
-  { country: "Tajikistan", code: "TJ", aqi: 152, continent: "Asia", stations: 12 },
-  { country: "Iraq", code: "IQ", aqi: 145, continent: "Asia", stations: 20 },
-  { country: "UAE", code: "AE", aqi: 142, continent: "Asia", stations: 50 },
-  { country: "Nepal", code: "NP", aqi: 140, continent: "Asia", stations: 25 },
-  { country: "Egypt", code: "EG", aqi: 138, continent: "Africa", stations: 33 },
-  { country: "Indonesia", code: "ID", aqi: 135, continent: "Asia", stations: 60 },
-  { country: "China", code: "CN", aqi: 132, continent: "Asia", stations: 500 },
-  { country: "Vietnam", code: "VN", aqi: 130, continent: "Asia", stations: 120 },
-  { country: "Iran", code: "IR", aqi: 128, continent: "Asia", stations: 95 },
-  { country: "Thailand", code: "TH", aqi: 126, continent: "Asia", stations: 814 },
-  { country: "Mexico", code: "MX", aqi: 124, continent: "America", stations: 150 },
-  { country: "Turkey", code: "TR", aqi: 122, continent: "Europe", stations: 200 },
-  { country: "Peru", code: "PE", aqi: 120, continent: "America", stations: 90 },
-  { country: "Colombia", code: "CO", aqi: 118, continent: "America", stations: 110 },
-  { country: "South Korea", code: "KR", aqi: 115, continent: "Asia", stations: 668 },
-  { country: "Philippines", code: "PH", aqi: 112, continent: "Asia", stations: 80 },
-];
+import AQICard from '../components/AQICard';
+import ForecastChart from '../components/ForecastChart';
+import MapView from '../components/MapView';
+import PollutantCard from '../components/PollutantCard';
+import AQIScaleLegend from '../components/AQIScaleLegend';
 
-/* 🎯 HELPERS */
-const getStatus = (aqi) => {
-  if (aqi <= 50) return "Good";
-  if (aqi <= 100) return "Moderate";
-  if (aqi <= 150) return "Poor";
-  return "Unhealthy";
-};
-
-const getColor = (aqi) => {
-  if (aqi <= 50) return "#22c55e";
-  if (aqi <= 100) return "#eab308";
-  if (aqi <= 150) return "#f97316";
-  return "#ef4444";
-};
+import AiChatbot from '../components/AiChatbot';
 
 export default function Dashboard() {
-  const [search, setSearch] = useState("");
-  const [sortDesc, setSortDesc] = useState(true);
-  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [aqiData, setAqiData] = useState(null);
+  const [forecastData, setForecastData] = useState([]);
+  const [locationName, setLocationName] = useState('San Francisco, CA');
+  const [coordinates, setCoordinates] = useState(null);
 
-  const pageSize = 8;
+  const fetchWithCoordinates = async (lat, lng, name) => {
+    setLoading(true);
+    setError(null);
+    setLocationName(name);
 
-  /* 🔥 FILTER + SORT */
-  const filtered = useMemo(() => {
-    let data = rawData.filter((item) =>
-      item.country.toLowerCase().includes(search.toLowerCase())
+    try {
+      const [aqiRes, forecastRes] = await Promise.all([
+        axios.post('http://localhost:5000/api/aqi', { lat, lng }),
+        axios.post('http://localhost:5000/api/forecast', { lat, lng })
+      ]);
+
+      setAqiData(aqiRes.data);
+      if (forecastRes.data && Array.isArray(forecastRes.data)) {
+        setForecastData(forecastRes.data.map(item => ({
+          time: item.day,
+          aqi: item.aqi
+        })));
+      }
+      setCoordinates({ lat, lng });
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch data. Is the backend running?");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMapClick = async (lat, lng) => {
+    try {
+       const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+       const name = res.data.address?.city || res.data.address?.town || res.data.address?.village || 'Selected Location';
+       localStorage.setItem('aqi_location', JSON.stringify({lat, lng, name}));
+       fetchWithCoordinates(lat, lng, name);
+    } catch(err) {
+       localStorage.setItem('aqi_location', JSON.stringify({lat, lng, name: 'Selected Location'}));
+       fetchWithCoordinates(lat, lng, 'Selected Location');
+    }
+  };
+
+  useEffect(() => {
+    let lat = 37.7749;
+    let lng = -122.4194;
+    let name = 'San Francisco, CA';
+
+    const savedLocation = localStorage.getItem('aqi_location');
+    if (savedLocation) {
+      const parsed = JSON.parse(savedLocation);
+      lat = Number(parsed.lat);
+      lng = Number(parsed.lng);
+      name = parsed.name || name;
+    }
+    
+    fetchWithCoordinates(lat, lng, name);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-aqi-primary" />
+      </div>
     );
+  }
 
-    data.sort((a, b) =>
-      sortDesc ? b.aqi - a.aqi : a.aqi - b.aqi
-    );
-
-    return data.map((item, index) => ({
-      ...item,
-      rank: index + 1,
-    }));
-  }, [search, sortDesc]);
-
-  /* 📄 PAGINATION */
-  const paginated = filtered.slice(
-    (page - 1) * pageSize,
-    page * pageSize
-  );
-
-  const totalPages = Math.ceil(filtered.length / pageSize);
-
-  return (
-    <div className="container">
-      <Navbar />
-
-      <div className="card">
-        <h2>🌍 World's Most Polluted Countries</h2>
-
-        {/* 🔗 REPORT LINK */}
-        <p style={{ color: "#94a3b8" }}>
-          Source: IQAir Global Air Quality Report  
-          👉{" "}
-          <a
-            href="https://www.iqair.com/world-most-polluted-countries"
-            target="_blank"
-            style={{ color: "#00e5ff" }}
-          >
-            View Full Report
-          </a>
-        </p>
-
-        {/* 🔍 SEARCH + SORT */}
-        <div style={{ display: "flex", gap: "10px", margin: "15px 0" }}>
-          <input
-            placeholder="Search country..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-
-          <button onClick={() => setSortDesc(!sortDesc)}>
-            Sort {sortDesc ? "↓ High AQI" : "↑ Low AQI"}
-          </button>
-        </div>
-
-        {/* TABLE */}
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderSpacing: "0 10px" }}>
-            <thead>
-              <tr style={{ color: "#94a3b8" }}>
-                <th>#</th>
-                <th>Country</th>
-                <th>AQI</th>
-                <th>Status</th>
-                <th>Continent</th>
-                <th>Stations</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {paginated.map((item) => (
-                <tr
-                  key={item.rank}
-                  style={{
-                    background: "#1e2a47",
-                    transition: "0.3s",
-                  }}
-                >
-                  <td>{item.rank}</td>
-
-                  <td style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <ReactCountryFlag
-                      countryCode={item.code}
-                      svg
-                      style={{ width: "20px", height: "20px" }}
-                    />
-                    {item.country}
-                  </td>
-
-                  <td>
-                    <span
-                      style={{
-                        background: getColor(item.aqi),
-                        padding: "6px 12px",
-                        borderRadius: "8px",
-                        color: "black",
-                      }}
-                    >
-                      {item.aqi}
-                    </span>
-                  </td>
-
-                  <td style={{ color: getColor(item.aqi) }}>
-                    {getStatus(item.aqi)}
-                  </td>
-
-                  <td>{item.continent}</td>
-                  <td>{item.stations}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 📄 PAGINATION */}
-        <div style={{ marginTop: "15px", display: "flex", gap: "10px" }}>
-          <button disabled={page === 1} onClick={() => setPage(page - 1)}>
-            Prev
-          </button>
-
-          <span>Page {page} / {totalPages}</span>
-
-          <button
-            disabled={page === totalPages}
-            onClick={() => setPage(page + 1)}
-          >
-            Next
-          </button>
+  if (error || !aqiData) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-4">
+        <div className="glass-card max-w-md w-full text-center p-8 bg-red-900/20 border-red-500/30">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Connection Error</h2>
+          <p className="text-gray-400">{error || "Could not load data"}</p>
         </div>
       </div>
+    );
+  }
+
+  const getPollutantStatus = (val, threshold) => val <= threshold ? 'Good' : 'Elevated';
+  
+  const pollutantsArray = [
+    { name: 'PM2.5', value: aqiData.pm25?.toFixed(1) || 0, unit: 'µg/m³', status: getPollutantStatus(aqiData.pm25, 35.4) },
+    { name: 'PM10', value: aqiData.pm10?.toFixed(1) || 0, unit: 'µg/m³', status: getPollutantStatus(aqiData.pm10, 154) },
+    { name: 'NO2', value: aqiData.no2?.toFixed(1) || 0, unit: 'ppb', status: getPollutantStatus(aqiData.no2, 53) },
+    { name: 'O3', value: aqiData.o3?.toFixed(1) || 0, unit: 'ppb', status: getPollutantStatus(aqiData.o3, 70) },
+    { name: 'CO', value: aqiData.co?.toFixed(2) || 0, unit: 'ppm', status: getPollutantStatus(aqiData.co, 9.4) },
+    { name: 'SO2', value: aqiData.so2?.toFixed(1) || 0, unit: 'ppb', status: getPollutantStatus(aqiData.so2, 75) },
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Environmental Dashboard</h1>
+          <p className="text-gray-400 flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-aqi-secondary" /> {locationName} • Live Data
+          </p>
+        </div>
+        <div className="flex gap-4 hidden sm:flex">
+          <div className="glass px-4 py-2 rounded-xl flex items-center gap-2">
+            <Cloud className="w-5 h-5 text-gray-300" />
+            <span className="text-white font-medium">Real-time</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <AQICard currentAQI={aqiData.aqi} />
+
+        <ForecastChart forecastData={forecastData} />
+        
+        <AQIScaleLegend />
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+        >
+          {pollutantsArray.map((p, idx) => (
+            <PollutantCard key={idx} {...p} />
+          ))}
+        </motion.div>
+
+        <MapView coordinates={coordinates} onMapClick={handleMapClick} aqi={aqiData?.aqi || 50} />
+      </div>
+
+      <AiChatbot aqiData={aqiData} forecastData={forecastData} locationName={locationName} />
     </div>
   );
 }

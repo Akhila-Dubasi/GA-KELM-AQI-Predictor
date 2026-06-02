@@ -15,7 +15,7 @@ def load_data():
     df = df[["PM2.5", "PM10", "NO2", "SO2", "CO", "O3", "AQI"]]
     df = df.dropna()
 
-    df = df.sample(n=1000, random_state=42)
+    df = df.sample(n=2000, random_state=42)  # Increased sample size since we have cleaner global data
 
     X = df[["PM2.5", "PM10", "NO2", "SO2", "CO", "O3"]].values
     y = df["AQI"].values
@@ -34,8 +34,8 @@ def rmse(y_true, y_pred):
 # ================= GA =================
 def genetic_algorithm(X_train, y_train, X_test, y_test):
 
-    population_size = 6
-    generations = 3
+    population_size = 10
+    generations = 40  # As per paper: maximum evolutionary generation is set to 40
 
     # Initialize population
     population = [
@@ -68,17 +68,24 @@ def genetic_algorithm(X_train, y_train, X_test, y_test):
 
         new_population = selected.copy()
 
-        # Crossover
+        # Crossover (using standard crossover probability from paper range)
         while len(new_population) < population_size:
             p1, p2 = np.random.choice(selected, 2)
+            
+            # Crossover probability
+            if np.random.rand() < 0.80:
+                child = {
+                    "gamma": (p1["gamma"] + p2["gamma"]) / 2,
+                    "C": (p1["C"] + p2["C"]) / 2,
+                }
+            else:
+                child = {
+                    "gamma": p1["gamma"],
+                    "C": p1["C"],
+                }
 
-            child = {
-                "gamma": (p1["gamma"] + p2["gamma"]) / 2,
-                "C": (p1["C"] + p2["C"]) / 2,
-            }
-
-            # Mutation
-            if np.random.rand() < 0.3:
+            # Mutation probability
+            if np.random.rand() < 0.10:
                 child["gamma"] *= np.random.uniform(0.8, 1.2)
                 child["C"] *= np.random.uniform(0.8, 1.2)
 
@@ -162,4 +169,42 @@ def predict_aqi(data):
         "so2": data.so2,
         "co": data.co,
         "o3": data.o3,
+    }
+from sklearn.metrics import r2_score, mean_squared_error
+
+# ================= ADMIN METRICS =================
+def get_model_metrics():
+    global trained_model, scaler
+
+    if trained_model is None:
+        return {"error": "Model not trained"}
+
+    # Reload data
+    X_train, X_test, y_train, y_test = load_data()
+
+    # Predict
+    y_pred = trained_model.predict(X_test)
+
+    # Metrics
+    rmse_val = np.sqrt(mean_squared_error(y_test, y_pred))
+    r2_val = r2_score(y_test, y_pred)
+
+    # Convert small sample for graph
+    sample_size = 50
+    actual = y_test[:sample_size].tolist()
+    predicted = y_pred[:sample_size].tolist()
+
+    chart_data = [
+        {
+            "index": i,
+            "actual": round(actual[i], 2),
+            "predicted": round(predicted[i], 2),
+        }
+        for i in range(sample_size)
+    ]
+
+    return {
+        "rmse": round(rmse_val, 2),
+        "r2": round(r2_val, 2),
+        "chart": chart_data,
     }

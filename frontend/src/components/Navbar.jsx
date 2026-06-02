@@ -1,153 +1,59 @@
-import { useState } from "react";
-import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from 'react-router-dom';
+import { Wind, LayoutDashboard, History, MapPin, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-export default function Navbar({ setAQI = () => {} }) {
-  const [city, setCity] = useState("");
-  const navigate = useNavigate();
+export default function Navbar() {
   const location = useLocation();
 
-  const handleSearch = async () => {
-    if (!city) return;
-
-    try {
-      // 🌍 Convert city → lat/lng
-      const geo = await axios.get(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${city}`
-      );
-
-      if (geo.data.length === 0) {
-        alert("City not found");
-        return;
-      }
-
-      const lat = parseFloat(geo.data[0].lat);
-      const lng = parseFloat(geo.data[0].lon);
-
-      // 🔥 Backend call
-      const res = await axios.post("http://localhost:5000/api/aqi", {
-        lat,
-        lng,
-      });
-
-      setAQI({
-        ...res.data,
-        lat,
-        lng,
-      });
-
-      // 👉 Always go to home after search
-      navigate("/");
-    } catch (err) {
-      console.error(err);
-      alert("Error fetching AQI");
-    }
-  };
-
-  // 🎯 Active tab highlight
-  const isActive = (path) => location.pathname === path;
+  const links = [
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Location', path: '/location', icon: MapPin },
+    { name: 'History', path: '/history', icon: History },
+    { name: 'Safety', path: '/precautions', icon: ShieldCheck },
+  ];
 
   return (
-    <div
-      className="card navbar"
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "20px",
-      }}
-    >
-      {/* 🌍 LOGO */}
-      <h2 style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
-        🌍 AirQuality.AI
-      </h2>
-
-      {/* 🔥 NAVIGATION */}
-      <div style={{ display: "flex", gap: "25px" }}>
-        <span
-          onClick={() => navigate("/")}
-          style={{
-            cursor: "pointer",
-            color: isActive("/") ? "#00e5ff" : "#cbd5f5",
-            fontWeight: "500",
-          }}
-        >
-          Home
-        </span>
-
-        <span
-          onClick={() => navigate("/dashboard")}
-          style={{
-            cursor: "pointer",
-            color: isActive("/dashboard") ? "#00e5ff" : "#cbd5f5",
-            fontWeight: "500",
-          }}
-        >
-          Dashboard
-        </span>
-
-        <span
-          onClick={() => navigate("/precautions")}
-          style={{
-            cursor: "pointer",
-            color: isActive("/precautions") ? "#00e5ff" : "#cbd5f5",
-            fontWeight: "500",
-          }}
-        >
-          Precautions
-        </span>
+    <nav className="fixed top-0 w-full z-50 glass border-b border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="p-2 bg-aqi-primary/20 rounded-xl group-hover:bg-aqi-primary/30 transition-colors">
+              <Wind className="w-6 h-6 text-aqi-light" />
+            </div>
+            <span className="font-bold text-xl tracking-tight text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-aqi-light group-hover:to-aqi-secondary transition-all">
+              AeroSense
+            </span>
+          </Link>
+          
+          <div className="hidden md:block">
+            <div className="flex items-center space-x-1 border border-white/10 rounded-full p-1 bg-black/20">
+              {links.map((link) => {
+                const isActive = location.pathname === link.path;
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.name}
+                    to={link.path}
+                    className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="nav-pill"
+                        className="absolute inset-0 bg-white/10 rounded-full"
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                    <div className="relative flex items-center gap-2">
+                      <Icon className="w-4 h-4" />
+                      {link.name}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* 🔍 SEARCH */}
-      <div style={{ display: "flex", gap: "10px" }}>
-        <input
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          placeholder="Enter city..."
-          style={{
-            padding: "10px",
-            borderRadius: "10px",
-            border: "none",
-            outline: "none",
-          }}
-        />
-          <button
-  onClick={() => {
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-
-      const res = await axios.post("http://localhost:5000/api/aqi", {
-        lat,
-        lng,
-      });
-
-      setAQI({ ...res.data, lat, lng });
-    });
-  }}
-  style={{
-    background: "#22c55e",
-    color: "white",
-    borderRadius: "10px",
-    padding: "10px",
-  }}
->
-  📍 Use Location
-</button>
-        <button
-          onClick={handleSearch}
-          style={{
-            padding: "10px 15px",
-            borderRadius: "10px",
-            border: "none",
-            background: "#38bdf8",
-            color: "white",
-            cursor: "pointer",
-          }}
-        >
-          Search
-        </button>
-      </div>
-    </div>
+    </nav>
   );
 }

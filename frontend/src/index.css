@@ -1,308 +1,44 @@
-/* ===== GLOBAL ===== */
-body {
-  margin: 0;
-  font-family: "Inter", sans-serif;
-  background: radial-gradient(circle at top, #0f172a, #020617);
-  color: white;
-  overflow-x: hidden;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ===== CONTAINER ===== */
-.container {
-  padding: 20px;
-  position: relative;
-  z-index: 1;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* ===== GLASS CARD ===== */
-.card {
-  background: rgba(30, 42, 71, 0.6);
-  border-radius: 16px;
-  padding: 20px;
-  margin: 12px 0;
-  backdrop-filter: blur(18px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-  transition: 0.3s;
-  animation: fadeUp 0.5s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-}
-
-/* ===== BIG CARD ===== */
-.big-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* ===== GRID ===== */
-.grid {
-  display: grid;
-  gap: 15px;
-}
-
-/* ===== NAVBAR ===== */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.nav-link {
-  cursor: pointer;
-  color: #cbd5f5;
-  font-weight: 500;
-  transition: 0.3s;
-}
-
-.nav-link:hover {
-  color: #00e5ff;
-}
-
-/* ===== INPUT ===== */
-input {
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-}
-
-/* ===== BUTTON ===== */
-button {
-  padding: 10px 15px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #00e5ff, #3b82f6);
-  border: none;
-  color: black;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-button:hover {
-  transform: scale(1.05);
-}
-
-/* ===== TABLE ===== */
-table {
-  width: 100%;
-}
-
-th, td {
-  padding: 12px;
-}
-
-tr {
-  transition: 0.2s ease;
-}
-
-tr:hover {
-  transform: scale(1.01);
-  background: rgba(0, 229, 255, 0.08);
-}
-
-/* ===== MINI CARDS ===== */
-.mini-card {
-  background: rgba(255,255,255,0.05);
-  padding: 15px;
-  border-radius: 12px;
-  text-align: center;
-  transition: 0.3s;
-}
-
-.mini-card img {
-  width: 60px;
-  margin-bottom: 10px;
-}
-
-.mini-card:hover {
-  transform: translateY(-5px);
-  background: rgba(0,229,255,0.1);
-}
-
-/* ===== STATUS COLORS ===== */
-.success {
-  border-left: 5px solid #22c55e;
-}
-
-.danger {
-  border-left: 5px solid #ef4444;
-}
-
-/* ===== HERO ===== */
-.hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.hero-img {
-  width: 200px;
-  opacity: 0.8;
-}
-
-/* ===== ANIMATION ===== */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@layer base {
+  body {
+    @apply bg-aqi-bg text-gray-100 font-sans min-h-screen antialiased selection:bg-aqi-primary selection:text-white;
   }
 }
 
-/* ===== FLOATING BLOBS (VISIBLE NOW) ===== */
-.container::before,
-.container::after {
-  content: "";
-  position: fixed;
-  width: 450px;
-  height: 450px;
-  border-radius: 50%;
-  filter: blur(120px);
-  z-index: -1;
-}
-
-.container::before {
-  background: #22c55e55;
-  top: -100px;
-  left: -100px;
-  animation: floatBlob1 18s infinite alternate ease-in-out;
-}
-
-.container::after {
-  background: #3b82f655;
-  bottom: -120px;
-  right: -120px;
-  animation: floatBlob2 20s infinite alternate ease-in-out;
-}
-
-@keyframes floatBlob1 {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(120px, 100px); }
-}
-
-@keyframes floatBlob2 {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(-120px, -100px); }
-}
-
-/* ===== PARTICLES (FIXED & VISIBLE) ===== */
-.particles {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  overflow: hidden;
-}
-
-.particles span {
-  position: absolute;
-  display: block;
-  width: 6px;
-  height: 6px;
-  background: #00e5ff;
-  border-radius: 50%;
-  opacity: 0.5;
-  animation: floatParticles linear infinite;
-}
-
-/* Generate multiple particles */
-.particles span:nth-child(1) { left: 10%; animation-duration: 12s; }
-.particles span:nth-child(2) { left: 20%; animation-duration: 15s; }
-.particles span:nth-child(3) { left: 30%; animation-duration: 10s; }
-.particles span:nth-child(4) { left: 50%; animation-duration: 18s; }
-.particles span:nth-child(5) { left: 70%; animation-duration: 14s; }
-.particles span:nth-child(6) { left: 90%; animation-duration: 11s; }
-
-@keyframes floatParticles {
-  from {
-    transform: translateY(100vh);
+@layer utilities {
+  .glass {
+    @apply bg-aqi-card-glass backdrop-blur-md border border-white/10 shadow-glass;
   }
-  to {
-    transform: translateY(-10vh);
+  
+  .glass-card {
+    @apply glass rounded-2xl p-6 transition-all duration-300 hover:shadow-glow hover:border-white/20;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-aqi-light via-aqi-primary to-aqi-secondary;
   }
 }
-/* 🔥 TAB BUTTONS HOVER */
-button {
-  transition: 0.3s ease;
+
+/* Custom Scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-button:hover {
-  transform: scale(1.05);
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 1); 
 }
 
-/* 🔥 CARD ICON STYLE */
-.card h3 {
-  margin-top: 10px;
+::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 1); 
+  border-radius: 4px;
 }
 
-/* 🔥 GRID FIX */
-.grid {
-  display: grid;
-  gap: 15px;
-}
-
-/* 🔥 RESPONSIVE */
-@media (max-width: 768px) {
-  .grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-/* 🔥 TABS */
-.tabs {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.tabs button {
-  padding: 10px 20px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.05);
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.tabs .active {
-  background: linear-gradient(135deg,#3b82f6,#a855f7);
-}
-
-/* 🔥 AQI GLOW */
-.aqi-glow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  animation: glowPulse 2s infinite alternate;
-}
-
-@keyframes glowPulse {
-  from { box-shadow: 0 0 10px rgba(255,0,0,0.2); }
-  to { box-shadow: 0 0 30px rgba(255,0,0,0.6); }
-}
-
-/* 🔥 HOVER GLOW */
-.glow:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 20px rgba(0,229,255,0.6);
-}
-
-/* 🔥 PREMIUM HEADER */
-.premium-header h1 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* 🔥 MINI CARD */
-.mini-card {
-  padding: 15px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.05);
-  text-align: center;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 1); 
 }

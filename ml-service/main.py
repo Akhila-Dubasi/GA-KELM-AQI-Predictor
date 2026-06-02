@@ -25,3 +25,8 @@ def startup_event():
 @app.post("/predict")
 def predict(data: Input):
     return predict_aqi(data)
+from model.ga_kelm import get_model_metrics
+
+@app.get("/admin/metrics")
+def metrics():
+    return get_model_metrics()
