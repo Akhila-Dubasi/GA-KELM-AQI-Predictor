@@ -1,4 +1,6 @@
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel
 from model.ga_kelm import predict_aqi, train_model
 

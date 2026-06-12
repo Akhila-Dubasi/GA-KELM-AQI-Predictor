@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -12,7 +13,7 @@ scaler = StandardScaler()
 def load_data():
     import os
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    dataset_path = os.path.abspath(os.path.join(current_dir, "../../dataset/air_quality.csv"))
+    dataset_path = os.path.abspath(os.path.join(current_dir, "../dataset/air_quality.csv"))
     df = pd.read_csv(dataset_path)
 
     df = df[["PM2.5", "PM10", "NO2", "SO2", "CO", "O3", "AQI"]]
