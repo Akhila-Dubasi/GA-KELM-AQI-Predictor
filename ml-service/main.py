@@ -16,12 +16,15 @@ class Input(BaseModel):
     o3: float
 
 
-# 🔥 TRAIN ONLY ONCE
+import threading
+
+# 🔥 TRAIN ONLY ONCE (IN BACKGROUND)
 @app.on_event("startup")
 def startup_event():
-    print("Training model... please wait...")
-    train_model()
-    print("Model ready")
+    print("Launching model training in background thread...")
+    thread = threading.Thread(target=train_model)
+    thread.start()
+    print("Startup task completed. Port binding initiated.")
 
 
 @app.post("/predict")
