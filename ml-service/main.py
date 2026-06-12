@@ -17,9 +17,9 @@ class Input(BaseModel):
 # 🔥 TRAIN ONLY ONCE
 @app.on_event("startup")
 def startup_event():
-    print("Training model... please wait ⏳")
+    print("Training model... please wait...")
     train_model()
-    print("Model ready ✅")
+    print("Model ready")
 
 
 @app.post("/predict")

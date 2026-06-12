@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { Loader2, AlertTriangle, ShieldCheck, Leaf, HeartPulse, Heart } from "lucide-react";
+import { API_BASE_URL } from "../config";
 
 export default function Precautions() {
   const [activeTab, setActiveTab] = useState("current");
@@ -23,7 +24,7 @@ export default function Precautions() {
       setLocationName(name);
 
       try {
-        const res = await axios.post('http://localhost:5000/api/aqi', { lat, lng });
+        const res = await axios.post(`${API_BASE_URL}/api/aqi`, { lat, lng });
         setAqiData(res.data);
       } catch (err) {
         console.error(err);

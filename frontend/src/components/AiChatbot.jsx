@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Bot, User, Activity } from "lucide-react";
+import { API_BASE_URL } from "../config";
 
 export default function AiChatbot({ aqiData, forecastData, locationName }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +31,7 @@ export default function AiChatbot({ aqiData, forecastData, locationName }) {
       // or just send the real user queries.
       const chatHistory = newMessages.filter((msg, idx) => idx !== 0);
 
-      const response = await fetch("http://localhost:5000/api/chat", {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

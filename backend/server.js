@@ -6,6 +6,8 @@ import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -69,7 +71,7 @@ app.post("/api/aqi", async (req, res) => {
 
     try {
       const mlRes = await axios.post(
-        "http://127.0.0.1:8000/predict",
+        `${ML_SERVICE_URL}/predict`,
         pollutants
       );
 
@@ -206,7 +208,7 @@ app.post("/api/forecast", async (req, res) => {
 
         try {
             const mlRes = await axios.post(
-                "http://127.0.0.1:8000/predict",
+                `${ML_SERVICE_URL}/predict`,
                 p
             );
             if (mlRes.data?.aqi) {
@@ -277,7 +279,7 @@ app.post("/api/history", async (req, res) => {
         // get AQI via ML
         let aqi;
         try {
-            const mlRes = await axios.post("http://127.0.0.1:8000/predict", p);
+            const mlRes = await axios.post(`${ML_SERVICE_URL}/predict`, p);
             aqi = mlRes.data?.aqi;
         } catch {
             console.log("ML Failed for History")
@@ -355,6 +357,19 @@ app.post("/api/chat", async (req, res) => {
 });
 
 /* =========================================
+   📊 ADMIN METRICS PROXY API
+========================================= */
+app.get("/api/admin/metrics", async (req, res) => {
+  try {
+    const mlRes = await axios.get(`${ML_SERVICE_URL}/admin/metrics`);
+    res.json(mlRes.data);
+  } catch (err) {
+    console.error("❌ ADMIN METRICS ERROR:", err.message);
+    res.status(500).json({ error: "Failed to fetch model metrics" });
+  }
+});
+
+/* =========================================
    🧪 HEALTH CHECK
 ========================================= */
 app.get("/", (req, res) => {
@@ -364,8 +379,8 @@ app.get("/", (req, res) => {
 /* =========================================
    🚀 START SERVER
 ========================================= */
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Backend running on http://localhost:${PORT}`);
+  console.log(`🚀 Backend running on port ${PORT}`);
 });

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Cloud, Loader2, MapPin } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 import AQICard from '../components/AQICard';
 import ForecastChart from '../components/ForecastChart';
@@ -26,8 +27,8 @@ export default function Dashboard() {
 
     try {
       const [aqiRes, forecastRes] = await Promise.all([
-        axios.post('http://localhost:5000/api/aqi', { lat, lng }),
-        axios.post('http://localhost:5000/api/forecast', { lat, lng })
+        axios.post(`${API_BASE_URL}/api/aqi`, { lat, lng }),
+        axios.post(`${API_BASE_URL}/api/forecast`, { lat, lng })
       ]);
 
       setAqiData(aqiRes.data);

@@ -10,7 +10,10 @@ scaler = StandardScaler()
 
 # ================= LOAD DATA =================
 def load_data():
-    df = pd.read_csv("../dataset/air_quality.csv")
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    dataset_path = os.path.abspath(os.path.join(current_dir, "../../dataset/air_quality.csv"))
+    df = pd.read_csv(dataset_path)
 
     df = df[["PM2.5", "PM10", "NO2", "SO2", "CO", "O3", "AQI"]]
     df = df.dropna()
@@ -124,7 +127,7 @@ def train_model():
     model.fit(X_train, y_train)
 
     trained_model = model
-    print("Model ready ✅")
+    print("Model ready")
 
 
 # ================= PREDICT =================

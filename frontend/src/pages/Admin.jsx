@@ -3,6 +3,7 @@ import axios from "axios";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+import { API_BASE_URL } from "../config";
 
 export default function Admin() {
   const [data, setData] = useState([]);
@@ -12,7 +13,7 @@ export default function Admin() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/admin/metrics");
+        const res = await axios.get(`${API_BASE_URL}/api/admin/metrics`);
 
         setRmse(res.data.rmse);
         setR2(res.data.r2);

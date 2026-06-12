@@ -3,6 +3,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Calendar, Download, RefreshCw, Filter, Loader2, AlertTriangle } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export default function History() {
   const [historyData, setHistoryData] = useState([]);
@@ -29,7 +30,7 @@ export default function History() {
     setLocationName(name);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/history', { lat, lng });
+      const res = await axios.post(`${API_BASE_URL}/api/history`, { lat, lng });
       if (res.data) {
          setHistoryData(res.data.historyData);
          setRecentLogs(res.data.recentLogs.map(log => ({ ...log, location: name })));
