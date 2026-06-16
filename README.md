@@ -1,3 +1,4 @@
+LIVE ----- https://ga-kelm-aqi-predictor.vercel.app/
 # GA-KELM AQI Predictor
 
 A modern, full-stack Web Application for predicting and visualizing the Air Quality Index (AQI) using a **Genetic Algorithm (GA)** optimized **Kernel Extreme Learning Machine (KELM)**. The project integrates real-time air quality data, interactive map visualizations, historical and forecast analytics, and an AI-powered health assistant.
